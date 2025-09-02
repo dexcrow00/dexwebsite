@@ -1,1 +1,261 @@
-"# dexwebsite" 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DexWebsite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #04529D 0%, #3A6963 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 80px 0;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .headshot-container {
+            position: relative;
+        }
+
+        .headshot {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #EE2835;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .headshot:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+        }
+
+        .profile-text {
+            text-align: center;
+        }
+
+        .author-name {
+            font-size: 1.1rem;
+            color: #ED8171;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .main-content {
+            background: transparent;
+            padding: 20px 0;
+            margin: 20px 0;
+        }
+
+        .section {
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .section h2 {
+            color: #EE2835;
+            margin-bottom: 25px;
+            font-size: 2.2rem;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .section p {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.8;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .feature-card h3 {
+            color: #EE2835;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .feature-card p {
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: white;
+            opacity: 0.8;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: rgba(238, 40, 53, 0.9);
+            color: white;
+            padding: 18px 35px;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            margin: 25px 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .cta-button:hover {
+            background: rgba(237, 129, 113, 0.9);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .main-content {
+                padding: 20px;
+                margin: 20px 0;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .headshot {
+                width: 150px;
+                height: 150px;
+            }
+
+            .profile-section {
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="profile-section">
+                <div class="headshot-container">
+                    <img src="_data/IMG_0754.jpeg" alt="Dexte Crowley" class="headshot">
+                </div>
+                <div class="profile-text">
+                    <h1>Welcome to DextoLand</h1>
+                    <p class="subtitle">A Personal Website, for a personable guy.</p>
+                    <p class="author-name">by Dexter Crowley</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="section">
+                <h2>About</h2>
+                <p>This is a clean, modern website built with plain HTML and CSS. It features a responsive design that works perfectly on all devices.</p>
+                <p>The design includes smooth animations, modern gradients, and a professional layout that's perfect for showcasing your content.</p>
+            </div>
+
+            <div class="section">
+                <h2>Features</h2>
+                <div class="features">
+                    <div class="feature-card">
+                        <h3>Responsive Design</h3>
+                        <p>Automatically adapts to any screen size, from mobile phones to desktop computers.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Modern UI</h3>
+                        <p>Clean, professional design with smooth animations and beautiful gradients.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Fast Loading</h3>
+                        <p>Built with plain HTML and CSS for lightning-fast performance and excellent user experience.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Get Started</h2>
+                <p>Ready to customize this website for your needs? The code is clean and well-structured, making it easy to modify.</p>
+                <a href="#" class="cta-button">Learn More</a>
+                <a href="#" class="cta-button">Contact Us</a>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2024 DexWebsite. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html> 

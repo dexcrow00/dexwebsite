@@ -1,1 +1,41 @@
-"# dexwebsite" 
+# Main website information
+site_name: "DexWebsite"
+tagline: "Your modern, responsive website solution"
+version: "1.0.0"
+
+# Contact information
+contact:
+  email: "hello@dexwebsite.com"
+  phone: "+1 (907) 342-2152"
+  address: "Secret :)"
+
+# Social media links
+social:
+  linkedin: "https://linkedin.com/dextercrowley"
+  github: "https://github.com/dexter00"
+
+# Navigation menu
+navigation:
+  - title: "Home"
+    url: "/"
+  - title: "About"
+    url: "/about"
+  - title: "Services"
+    url: "/services"
+  - title: "Contact"
+    url: "/contact"
+
+# Features list
+features:
+  - title: "Responsive Design"
+    description: "Works perfectly on all devices"
+    icon: "📱"
+  - title: "Modern UI"
+    description: "Clean and professional design"
+    icon: "🎨"
+  - title: "Fast Loading"
+    description: "Optimized for performance"
+    icon: "⚡"
+  - title: "Easy Customization"
+    description: "Simple to modify and extend"
+    icon: "🔧" 

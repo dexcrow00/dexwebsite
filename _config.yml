@@ -1,1 +1,38 @@
-"# dexwebsite" 
+# Site settings
+title: Dexto's Website
+description: A modern, responsive website built with HTML and CSS
+author: Dexte Crowley
+email: dexcrow@gmail.com
+url: https://your-domain.com
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+
+# Collections
+collections:
+  data:
+    output: false
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - .gitignore
+  - README.md 
