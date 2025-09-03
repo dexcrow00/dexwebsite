@@ -32,6 +32,28 @@
             margin-bottom: 40px;
         }
 
+        .nav-links {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
         .profile-section {
             display: flex;
             flex-direction: column;
@@ -180,6 +202,63 @@
             border-color: rgba(255, 255, 255, 0.5);
         }
 
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .nav-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            padding: 30px 40px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            min-width: 150px;
+        }
+
+        .home-button {
+            background: rgba(238, 40, 53, 0.8);
+            color: white;
+        }
+
+        .home-button:hover {
+            background: rgba(238, 40, 53, 0.95);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(238, 40, 53, 0.4);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .posts-button {
+            background: rgba(237, 129, 113, 0.8);
+            color: white;
+        }
+
+        .posts-button:hover {
+            background: rgba(237, 129, 113, 0.95);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(237, 129, 113, 0.4);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .button-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .button-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
         @media (max-width: 768px) {
             h1 {
                 font-size: 2.5rem;
@@ -201,6 +280,31 @@
 
             .profile-section {
                 gap: 20px;
+            }
+
+            .nav-links a {
+                display: block;
+                margin: 10px auto;
+                max-width: 200px;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .nav-button {
+                padding: 25px 30px;
+                min-width: 200px;
+            }
+
+            .button-icon {
+                font-size: 2rem;
+            }
+
+            .button-text {
+                font-size: 1.1rem;
             }
         }
     </style>
@@ -228,28 +332,18 @@
             </div>
 
             <div class="section">
-                <h2>Features</h2>
-                <div class="features">
-                    <div class="feature-card">
-                        <h3>Responsive Design</h3>
-                        <p>Automatically adapts to any screen size, from mobile phones to desktop computers.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>Modern UI</h3>
-                        <p>Clean, professional design with smooth animations and beautiful gradients.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>Fast Loading</h3>
-                        <p>Built with plain HTML and CSS for lightning-fast performance and excellent user experience.</p>
-                    </div>
+                <h2>Navigation</h2>
+                <p>Explore the different sections of this website.</p>
+                <div class="nav-buttons">
+                    <a href="index.html" class="nav-button home-button">
+                        <span class="button-icon">🏠</span>
+                        <span class="button-text">Home</span>
+                    </a>
+                    <a href="posts.html" class="nav-button posts-button">
+                        <span class="button-icon">📝</span>
+                        <span class="button-text">Posts</span>
+                    </a>
                 </div>
-            </div>
-
-            <div class="section">
-                <h2>Get Started</h2>
-                <p>Ready to customize this website for your needs? The code is clean and well-structured, making it easy to modify.</p>
-                <a href="#" class="cta-button">Learn More</a>
-                <a href="#" class="cta-button">Contact Us</a>
             </div>
         </div>
 

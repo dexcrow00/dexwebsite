@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posts - DexWebsite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #04529D 0%, #3A6963 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 0;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .nav-links {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .posts-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .post-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .post-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .post-title {
+            color: #EE2835;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .post-meta {
+            color: #ED8171;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .post-excerpt {
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .read-more {
+            display: inline-block;
+            background: rgba(238, 40, 53, 0.9);
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .read-more:hover {
+            background: rgba(237, 129, 113, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .no-posts {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            opacity: 0.8;
+            padding: 60px 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: white;
+            opacity: 0.8;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .post-card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .post-title {
+                font-size: 1.5rem;
+            }
+
+            .nav-links a {
+                display: block;
+                margin: 10px auto;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="posts.html">Posts</a>
+            </div>
+            <h1>Blog Posts</h1>
+            <p class="subtitle">Thoughts, ideas, and updates from Dexter Crowley</p>
+        </header>
+
+        <div class="posts-container">
+            <!-- Sample post - you can add more posts by duplicating this structure -->
+            <div class="post-card">
+                <h2 class="post-title">Welcome to My Blog</h2>
+                <div class="post-meta">Published on December 15, 2024</div>
+                <p class="post-excerpt">
+                    This is my first blog post! I'm excited to share my thoughts, experiences, and insights with you. 
+                    Here you'll find posts about technology, life, and everything in between.
+                </p>
+                <a href="#" class="read-more">Read More</a>
+            </div>
+
+            <div class="post-card">
+                <h2 class="post-title">Building This Website</h2>
+                <div class="post-meta">Published on December 14, 2024</div>
+                <p class="post-excerpt">
+                    I recently built this website using plain HTML and CSS. It's amazing what you can create with 
+                    just these fundamental web technologies. Clean, fast, and beautiful.
+                </p>
+                <a href="#" class="read-more">Read More</a>
+            </div>
+
+            <div class="post-card">
+                <h2 class="post-title">The Future of Web Development</h2>
+                <div class="post-meta">Published on December 13, 2024</div>
+                <p class="post-excerpt">
+                    Web development is constantly evolving. From new frameworks to improved performance standards, 
+                    there's always something new to learn and explore in this exciting field.
+                </p>
+                <a href="#" class="read-more">Read More</a>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2024 DexWebsite. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
