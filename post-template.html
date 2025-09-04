@@ -1,28 +1,48 @@
-<!-- Template for adding new blog posts -->
-<!-- Copy this structure and paste it into posts.html where you want to add a new post -->
+<!-- Template for creating a new blog post page (separate HTML under blog_posts/) -->
+<!--
+How posts work now:
+- Each post is its own HTML file inside blog_posts/ (e.g., blog_posts/my-new-post.html)
+- posts.html reads blog_posts/index.json to list posts and link to them
 
-<div class="post-card">
-    <h2 class="post-title">Your Post Title Here</h2>
-    <div class="post-meta">Published on [Date]</div>
-    <p class="post-excerpt">
-        Your post excerpt goes here. This should be a brief summary of what the post is about.
-        Keep it to about 2-3 sentences to give readers a good idea of the content.
-    </p>
-    <a href="#" class="read-more">Read More</a>
-</div>
+Steps to add a new post:
+1) Create a new file under blog_posts/, e.g. blog_posts/your-post-slug.html
+2) Copy the full-page template below into that file and edit the placeholders
+3) Open blog_posts/index.json and add a new entry with title, date, excerpt, and url
+   Example index.json entry:
+   {
+     "title": "Your Post Title",
+     "date": "2025-09-03",
+     "excerpt": "A short 1–2 sentence summary of the post.",
+     "url": "blog_posts/your-post-slug.html"
+   }
 
-<!-- 
-To add a new post:
-1. Copy the above HTML structure
-2. Paste it into posts.html in the posts-container div
-3. Replace "Your Post Title Here" with your actual post title
-4. Replace "[Date]" with the actual publication date
-5. Replace the excerpt text with your post summary
-6. Update the href="#" in the read-more link to point to the full post (if you create individual post pages)
-
-You can also create individual post pages by:
-1. Creating a new HTML file (e.g., post-1.html, post-2.html)
-2. Using the same styling from posts.html
-3. Adding the full post content
-4. Updating the "Read More" links to point to these individual pages
+Full-page HTML template to copy into your new blog_posts/ file:
 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Post Title</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.7; padding: 20px; max-width: 800px; margin: 0 auto; }
+        a { color: #EE2835; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        h1 { color: #333; margin-bottom: 10px; }
+        .meta { color: #777; margin-bottom: 20px; }
+    </style>
+    <!-- After creating the page, add/update its entry in blog_posts/index.json so it appears on posts.html -->
+</head>
+<body>
+    <a href="../posts.html">← Back to Posts</a>
+    <h1>Your Post Title</h1>
+    <div class="meta">Published on Month DD, YYYY</div>
+
+    <p>Write your post content here. You can use standard HTML elements like <strong>bold</strong>, <em>italics</em>, lists, images, and links.</p>
+    <p>Add as many paragraphs as you need. Keep the inline styles minimal since the content is standalone.</p>
+
+    <!-- Optional: images can live alongside this file; use relative paths -->
+    <!-- <img src="./my-image.jpg" alt="Descriptive alt text" /> -->
+</body>
+</html>
