@@ -1,0 +1,16 @@
+{
+  "posts": [
+    {
+      "title": "Welcome to My Blog",
+      "date": "2025-09-03",
+      "excerpt": "This is my first blog post! I'm excited to share my thoughts, experiences, and insights with you.",
+      "url": "blog_posts/welcome-to-my-blog.html"
+    },
+    {
+      "title": "Building This Website",
+      "date": "2025-09-03",
+      "excerpt": "I recently built this website using plain HTML and CSS. Clean, fast, and beautiful.",
+      "url": "blog_posts/building-this-website.html"
+    }
+  ]
+}

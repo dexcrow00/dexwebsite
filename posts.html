@@ -178,42 +178,97 @@
             <p class="subtitle">Thoughts, ideas, and updates from Dexter Crowley</p>
         </header>
 
-        <div class="posts-container">
-            <!-- Sample post - you can add more posts by duplicating this structure -->
-            <div class="post-card">
-                <h2 class="post-title">Welcome to My Blog</h2>
-                <div class="post-meta">Published on December 15, 2024</div>
-                <p class="post-excerpt">
-                    This is my first blog post! I'm excited to share my thoughts, experiences, and insights with you. 
-                    Here you'll find posts about technology, life, and everything in between.
-                </p>
-                <a href="#" class="read-more">Read More</a>
-            </div>
-
-            <div class="post-card">
-                <h2 class="post-title">Building This Website</h2>
-                <div class="post-meta">Published on December 14, 2024</div>
-                <p class="post-excerpt">
-                    I recently built this website using plain HTML and CSS. It's amazing what you can create with 
-                    just these fundamental web technologies. Clean, fast, and beautiful.
-                </p>
-                <a href="#" class="read-more">Read More</a>
-            </div>
-
-            <div class="post-card">
-                <h2 class="post-title">The Future of Web Development</h2>
-                <div class="post-meta">Published on December 13, 2024</div>
-                <p class="post-excerpt">
-                    Web development is constantly evolving. From new frameworks to improved performance standards, 
-                    there's always something new to learn and explore in this exciting field.
-                </p>
-                <a href="#" class="read-more">Read More</a>
-            </div>
+        <div class="posts-container" id="posts-container">
+            <div class="no-posts" id="no-posts">Loading posts...</div>
         </div>
 
         <footer>
-            <p>&copy; 2024 DexWebsite. All rights reserved.</p>
+            <p>&copy; 2025 DexWebsite. All rights reserved.</p>
         </footer>
     </div>
+
+    <script>
+    async function tryFetch(paths) {
+        const errors = [];
+        for (const path of paths) {
+            try {
+                const res = await fetch(path, { cache: 'no-store' });
+                if (res.ok) {
+                    return { json: await res.json(), path };
+                } else {
+                    errors.push(`${path} -> ${res.status}`);
+                }
+            } catch (e) {
+                errors.push(`${path} -> ${e.message}`);
+            }
+        }
+        throw new Error('Tried paths: ' + errors.join(' | '));
+    }
+
+    async function fetchAndRenderPosts() {
+        const container = document.getElementById('posts-container');
+        const emptyState = document.getElementById('no-posts');
+
+        // Construct candidate paths depending on hosting/base path
+        const basePath = (location.pathname || '/').replace(/[^\/]*$/, '');
+        const candidates = [
+            'blog_posts/index.json',
+            basePath + 'blog_posts/index.json',
+            './blog_posts/index.json',
+            '/blog_posts/index.json'
+        ];
+
+        try {
+            const { json: manifest, path: resolvedPath } = await tryFetch(candidates);
+
+            // Clear empty state
+            if (emptyState) emptyState.remove();
+
+            if (!Array.isArray(manifest.posts) || manifest.posts.length === 0) {
+                const msg = document.createElement('div');
+                msg.className = 'no-posts';
+                msg.textContent = 'No posts yet. Add some files to blog_posts/';
+                container.appendChild(msg);
+                return;
+            }
+
+            // Sort by date desc if date exists
+            manifest.posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            for (const post of manifest.posts) {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+
+                const title = document.createElement('h2');
+                title.className = 'post-title';
+                title.textContent = post.title || 'Untitled Post';
+
+                const meta = document.createElement('div');
+                meta.className = 'post-meta';
+                meta.textContent = post.date ? `Published on ${new Date(post.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}` : '';
+
+                const excerpt = document.createElement('p');
+                excerpt.className = 'post-excerpt';
+                excerpt.textContent = post.excerpt || '';
+
+                const link = document.createElement('a');
+                link.className = 'read-more';
+                link.href = post.url;
+                link.textContent = 'Read More';
+
+                card.appendChild(title);
+                card.appendChild(meta);
+                card.appendChild(excerpt);
+                card.appendChild(link);
+                container.appendChild(card);
+            }
+        } catch (err) {
+            if (emptyState) emptyState.textContent = 'Error loading posts. Could not fetch blog_posts/index.json.';
+            console.error('[Posts manifest fetch error]', err);
+        }
+    }
+
+    fetchAndRenderPosts();
+    </script>
 </body>
 </html>
