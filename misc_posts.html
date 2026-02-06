@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Junk Thoughts</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #04529D 0%, #3A6963 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 0;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .nav-links {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .posts-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .post-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .post-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .post-title {
+            color: #EE2835;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .post-meta {
+            color: #ED8171;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .post-excerpt {
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .read-more {
+            display: inline-block;
+            background: rgba(238, 40, 53, 0.9);
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .read-more:hover {
+            background: rgba(237, 129, 113, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .no-posts {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            opacity: 0.8;
+            padding: 60px 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: white;
+            opacity: 0.8;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .post-card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .post-title {
+                font-size: 1.5rem;
+            }
+
+            .nav-links a {
+                display: block;
+                margin: 10px auto;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="posts.html">Posts</a>
+            </div>
+            <h1>Blog Posts</h1>
+            <p class="subtitle">Thoughts, ideas, and updates from Dexter Crowley</p>
+        </header>
+
+        <div class="posts-container" id="posts-container">
+            <div class="no-posts" id="no-posts">Loading posts...</div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 DexWebsite. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+    async function tryFetch(paths) {
+        const errors = [];
+        for (const path of paths) {
+            try {
+                const res = await fetch(path, { cache: 'no-store' });
+                if (res.ok) {
+                    return { json: await res.json(), path };
+                } else {
+                    errors.push(`${path} -> ${res.status}`);
+                }
+            } catch (e) {
+                errors.push(`${path} -> ${e.message}`);
+            }
+        }
+        throw new Error('Tried paths: ' + errors.join(' | '));
+    }
+
+    async function fetchAndRenderPosts() {
+        const container = document.getElementById('posts-container');
+        const emptyState = document.getElementById('no-posts');
+
+        // Construct candidate paths depending on hosting/base path
+        const basePath = (location.pathname || '/').replace(/[^\/]*$/, '');
+        const candidates = [
+            'blog_posts/index.json',
+            basePath + 'blog_posts/index.json',
+            './blog_posts/index.json',
+            '/blog_posts/index.json'
+        ];
+
+        try {
+            const { json: manifest, path: resolvedPath } = await tryFetch(candidates);
+
+            // Clear empty state
+            if (emptyState) emptyState.remove();
+
+            if (!Array.isArray(manifest.posts) || manifest.posts.length === 0) {
+                const msg = document.createElement('div');
+                msg.className = 'no-posts';
+                msg.textContent = 'No posts yet. Add some files to blog_posts/';
+                container.appendChild(msg);
+                return;
+            }
+
+            // Sort by date desc if date exists
+            manifest.posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            for (const post of manifest.posts) {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+
+                const title = document.createElement('h2');
+                title.className = 'post-title';
+                title.textContent = post.title || 'Untitled Post';
+
+                const meta = document.createElement('div');
+                meta.className = 'post-meta';
+                meta.textContent = post.date ? `Published on ${new Date(post.date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}` : '';
+
+                const excerpt = document.createElement('p');
+                excerpt.className = 'post-excerpt';
+                excerpt.textContent = post.excerpt || '';
+
+                const link = document.createElement('a');
+                link.className = 'read-more';
+                link.href = post.url;
+                link.textContent = 'Read More';
+
+                card.appendChild(title);
+                card.appendChild(meta);
+                card.appendChild(excerpt);
+                card.appendChild(link);
+                container.appendChild(card);
+            }
+        } catch (err) {
+            if (emptyState) emptyState.textContent = 'Error loading posts. Could not fetch blog_posts/index.json.';
+            console.error('[Posts manifest fetch error]', err);
+        }
+    }
+
+    fetchAndRenderPosts();
+    </script>
+</body>
+</html>
