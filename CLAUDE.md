@@ -33,6 +33,8 @@ bundle exec jekyll serve   # serves at localhost:4000
 
 **Styling:** All CSS is embedded in `<style>` tags within each HTML file (no external stylesheets). The design uses a blue-to-teal gradient (`#04529D` → `#3A6963`) with glassmorphism effects (backdrop-filter blur). Red `#EE2835` for headings/CTAs, coral `#ED8171` for accents.
 
+**Assets:** Static images live in `assets/images/` (e.g., profile headshot). This directory is served correctly by both Jekyll/GitHub Pages and simple HTTP servers.
+
 **Configuration:** `_data/main_info.yaml` holds site metadata, contact info, social links, and navigation structure. `_config.yml` is for Jekyll if used.
 
 ## Key Patterns
