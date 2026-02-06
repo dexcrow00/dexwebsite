@@ -1,5 +1,7 @@
 # DexWebsite
 
+**Live site:** [https://dexcrow00.github.io/dexwebsite](https://dexcrow00.github.io/dexwebsite)
+
 A modern, responsive website built with plain HTML and CSS. This website features a clean design, smooth animations, and is fully responsive across all devices.
 
 ## Features
