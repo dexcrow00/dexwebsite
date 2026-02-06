@@ -11,6 +11,13 @@
       "date": "2025-09-03",
       "excerpt": "I recently built this website using plain HTML and CSS. Clean, fast, and beautiful.",
       "url": "blog_posts/building-this-website.html"
+    },
+    {
+      "title": "LLMs Copying Style",
+      "date": "2026-02-06",
+      "excerpt": "Do LLMs have the ability to emulate authorial styles that aren’t in their training data? If so what does that look like? Are LLMs effectively able to translate descriptions of authors styles (simply,...",
+      "url": "blog_posts/llms-copying-style.html",
+      "source": "publish.py"
     }
   ]
 }

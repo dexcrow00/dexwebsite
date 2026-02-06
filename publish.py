@@ -145,16 +145,20 @@ class RTFParser:
                     self.text_runs.append((chr(nxt), dict(fmt)))
                     continue
 
-                # line breaks \r \n treated as nothing (RTF uses \par)
+                # \<cr> and \<lf> are paragraph breaks (equivalent to \par)
                 if nxt in (ord('\r'), ord('\n')):
                     self.pos += 1
+                    self.text_runs.append(('\n', dict(fmt)))
                     continue
 
                 # control symbol (non-alpha after backslash)
                 if not (nxt and chr(nxt).isalpha()):
                     self.pos += 1
+                    # \* marks an ignorable destination
+                    if nxt == ord('*'):
+                        skip_depth = 1
                     # \~ = non-breaking space, \- = soft hyphen, \_ = non-breaking hyphen
-                    if nxt == ord('~'):
+                    elif nxt == ord('~'):
                         self.text_runs.append(('\u00A0', dict(fmt)))
                     elif nxt == ord('-'):
                         self.text_runs.append(('\u00AD', dict(fmt)))
@@ -177,12 +181,6 @@ class RTFParser:
 
                 # ignorable destinations
                 if word in _IGNORABLE_DESTINATIONS:
-                    skip_depth = 1
-                    continue
-
-                # also skip \*\destination patterns
-                if word == '*':
-                    # the next token is a destination — mark ignorable
                     skip_depth = 1
                     continue
 
@@ -387,7 +385,7 @@ class PublishPipeline:
             parser = RTFParser(raw)
             body_html = parser.parse()
 
-            title = self._extract_title(body_html, filename)
+            title = self._extract_title(filename)
             slug = self._slugify(title)
             html_filename = f'{slug}.html'
             pub_date = date.today()
@@ -419,21 +417,10 @@ class PublishPipeline:
         action = 'previewed' if self.dry_run else 'published'
         print(f'\nDone — {processed} post(s) {action}, {len(rtf_files) - processed} skipped.')
 
-    def _extract_title(self, body_html: str, filename: str) -> str:
-        """Extract title from the first non-empty paragraph."""
-        # find the first <p>...</p> content
-        match = re.search(r'<p>(.*?)</p>', body_html)
-        if match:
-            first_para = _strip_html(match.group(1)).strip()
-            if first_para and len(first_para) <= 100:
-                return first_para
-            # if first paragraph is long, use first few words
-            if first_para:
-                words = first_para.split()[:8]
-                return ' '.join(words)
-        # fallback to filename
-        name = os.path.splitext(filename)[0]
-        return name.replace('-', ' ').replace('_', ' ').title()
+    @staticmethod
+    def _extract_title(filename: str) -> str:
+        """Extract title from the RTF filename (minus extension)."""
+        return os.path.splitext(filename)[0]
 
     @staticmethod
     def _slugify(title: str) -> str:
