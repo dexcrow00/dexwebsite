@@ -212,10 +212,10 @@
         // Construct candidate paths depending on hosting/base path
         const basePath = (location.pathname || '/').replace(/[^\/]*$/, '');
         const candidates = [
-            'blog_posts/index.json',
-            basePath + 'blog_posts/index.json',
-            './blog_posts/index.json',
-            '/blog_posts/index.json'
+            'science_posts/index.json',
+            basePath + 'science_posts/index.json',
+            './science_posts/index.json',
+            '/science_posts/index.json'
         ];
 
         try {
@@ -227,7 +227,7 @@
             if (!Array.isArray(manifest.posts) || manifest.posts.length === 0) {
                 const msg = document.createElement('div');
                 msg.className = 'no-posts';
-                msg.textContent = 'No posts yet. Add some files to blog_posts/';
+                msg.textContent = 'No posts yet. Add some files to science_posts/';
                 container.appendChild(msg);
                 return;
             }
@@ -263,7 +263,7 @@
                 container.appendChild(card);
             }
         } catch (err) {
-            if (emptyState) emptyState.textContent = 'Error loading posts. Could not fetch blog_posts/index.json.';
+            if (emptyState) emptyState.textContent = 'Error loading posts. Could not fetch science_posts/index.json.';
             console.error('[Posts manifest fetch error]', err);
         }
     }
