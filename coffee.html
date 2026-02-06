@@ -17,6 +17,17 @@
             color: #333;
             background: linear-gradient(135deg, #04529D 0%, #3A6963 100%);
             min-height: 100vh;
+            cursor: none;
+        }
+
+        .cursor-custom {
+            position: fixed;
+            font-size: 24px;
+            pointer-events: none;
+            z-index: 99999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.08s ease-out;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
         }
 
         .container {
@@ -269,6 +280,25 @@
     }
 
     fetchAndRenderPosts();
+    </script>
+    <div class="cursor-custom" id="cursorCustom" aria-hidden="true">☕</div>
+    <script>
+        (function() {
+            var el = document.getElementById('cursorCustom');
+            var x = 0, y = 0, tx = 0, ty = 0;
+            document.addEventListener('mousemove', function(e) {
+                x = e.clientX;
+                y = e.clientY;
+            });
+            function update() {
+                tx += (x - tx) * 0.2;
+                ty += (y - ty) * 0.2;
+                el.style.left = tx + 'px';
+                el.style.top = ty + 'px';
+                requestAnimationFrame(update);
+            }
+            update();
+        })();
     </script>
 </body>
 </html>
