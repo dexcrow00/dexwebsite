@@ -35,6 +35,8 @@ bundle exec jekyll serve   # serves at localhost:4000
 
 **Assets:** Static images live in `assets/images/` (e.g., profile headshot). This directory is served correctly by both Jekyll/GitHub Pages and simple HTTP servers.
 
+**RTF publishing:** Drop `.rtf` files into `rtf_drafts/` and run `python3 publish.py` to auto-convert them into blog posts. The script generates HTML in `blog_posts/` and updates `index.json`. Supports `--dry-run` (preview) and `--force` (re-process all). Uses only the Python standard library. Processed files are tracked via `rtf_drafts/.published.json` (gitignored).
+
 **Configuration:** `_data/main_info.yaml` holds site metadata, contact info, social links, and navigation structure. `_config.yml` is for Jekyll if used.
 
 ## Key Patterns
