@@ -9,6 +9,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            cursor: none;
         }
 
         body {
@@ -395,7 +396,7 @@
             document.addEventListener('mousemove', function(e) {
                 x = e.clientX;
                 y = e.clientY;
-                var clickable = e.target.closest('a, button, [role="button"], .nav-button, .read-more');
+                var clickable = e.target.closest('a, button, [role="button"], .nav-button, .nav-buttons a, .nav-links a, .read-more');
                 el.classList.toggle('cursor-hover', !!clickable);
             });
             function update() {
