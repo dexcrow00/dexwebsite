@@ -22,20 +22,27 @@ bundle exec jekyll serve   # serves at localhost:4000
 
 ## Architecture
 
-**Pages:** `index.html` (homepage), `posts.html` (blog listing), `blog_posts/*.html` (individual posts)
+**Pages:** `index.html` (homepage), plus three topic listing pages: `science.html`, `coffee.html`, `misc_posts.html`
 
-**Blog system:** `posts.html` fetches `blog_posts/index.json` at runtime and renders post cards client-side with JavaScript. Posts are standalone HTML files in `blog_posts/`. The JSON manifest drives the listing — posts won't appear unless registered there.
+**Blog system:** Each topic page fetches its own `<posts_dir>/index.json` at runtime and renders post cards client-side with JavaScript. Posts are standalone HTML files in their respective posts directories. The JSON manifest drives each listing — posts won't appear unless registered there.
+
+**Topic channels:**
+| Topic | Listing page | Posts directory | RTF drafts |
+|-------|-------------|----------------|------------|
+| Science | `science.html` | `science_posts/` | `rtf_drafts/science/` |
+| Coffee | `coffee.html` | `coffee_posts/` | `rtf_drafts/coffee/` |
+| Misc | `misc_posts.html` | `blog_posts/` | `rtf_drafts/misc/` |
 
 **Adding a blog post:**
-1. Create an HTML file in `blog_posts/` (use `post-template.html` as a starting point)
-2. Add an entry to `blog_posts/index.json` with title, date, excerpt, and url
+1. Create an HTML file in the appropriate posts directory (use `post-template.html` as a starting point)
+2. Add an entry to that directory's `index.json` with title, date, excerpt, and url
 3. Posts sort by date automatically (newest first)
 
 **Styling:** All CSS is embedded in `<style>` tags within each HTML file (no external stylesheets). The design uses a blue-to-teal gradient (`#04529D` → `#3A6963`) with glassmorphism effects (backdrop-filter blur). Red `#EE2835` for headings/CTAs, coral `#ED8171` for accents.
 
 **Assets:** Static images live in `assets/images/` (e.g., profile headshot). This directory is served correctly by both Jekyll/GitHub Pages and simple HTTP servers.
 
-**RTF publishing:** Drop `.rtf` files into `rtf_drafts/` and run `python3 publish.py` to auto-convert them into blog posts. The script generates HTML in `blog_posts/` and updates `index.json`. Supports `--dry-run` (preview) and `--force` (re-process all). Uses only the Python standard library. Processed files are tracked via `rtf_drafts/.published.json` (gitignored).
+**RTF publishing:** Drop `.rtf` files into the appropriate `rtf_drafts/<channel>/` subfolder (science, coffee, or misc) and run `python3 publish.py` to auto-convert them into blog posts in the matching posts directory. Supports `--dry-run` (preview), `--force` (re-process all), and `--channel <name>` (process only one channel). Uses only the Python standard library. Processed files are tracked per-channel via `rtf_drafts/<channel>/.published.json` (gitignored).
 
 **Configuration:** `_data/main_info.yaml` holds site metadata, contact info, social links, and navigation structure. `_config.yml` is for Jekyll if used.
 

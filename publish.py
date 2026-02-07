@@ -2,11 +2,17 @@
 """
 RTF-to-blog-post publishing script.
 
-Converts .rtf files in rtf_drafts/ into HTML blog posts in blog_posts/,
-updating blog_posts/index.json automatically.
+Converts .rtf files in rtf_drafts/<channel>/ into HTML blog posts in the
+corresponding posts directory, updating each channel's index.json automatically.
+
+Channels:
+    rtf_drafts/science/  ->  science_posts/   (science.html)
+    rtf_drafts/coffee/   ->  coffee_posts/    (coffee.html)
+    rtf_drafts/misc/     ->  blog_posts/      (misc_posts.html)
 
 Usage:
-    python3 publish.py              # convert new/changed RTF files
+    python3 publish.py              # convert new/changed RTF files (all channels)
+    python3 publish.py --channel science   # only process one channel
     python3 publish.py --force      # re-process all RTF files
     python3 publish.py --dry-run    # preview without writing files
 
@@ -315,7 +321,7 @@ _POST_TEMPLATE = """\
     </style>
 </head>
 <body>
-    <a href="../posts.html">&larr; Back to Posts</a>
+    <a href="../{back_link}">&larr; Back to Posts</a>
     <h1>{title}</h1>
     <div class="meta">Published on {date_display}</div>
 {body}
@@ -328,13 +334,27 @@ class BlogPostGenerator:
     """Generates a blog post HTML file from a title and body HTML."""
 
     @staticmethod
-    def generate(title: str, body_html: str, pub_date: date) -> str:
+    def generate(title: str, body_html: str, pub_date: date, back_link: str = 'posts.html') -> str:
         date_display = pub_date.strftime('%B %-d, %Y')
         return _POST_TEMPLATE.format(
             title=_html_escape(title),
             date_display=date_display,
             body=body_html,
+            back_link=back_link,
         )
+
+
+# ---------------------------------------------------------------------------
+# Channel definitions
+# ---------------------------------------------------------------------------
+
+# Each channel maps an RTF drafts subfolder to a posts output directory
+# and the listing page that links back from individual posts.
+CHANNELS = [
+    {'name': 'science', 'drafts_subdir': 'science', 'posts_dir': 'science_posts', 'listing_page': 'science.html'},
+    {'name': 'coffee',  'drafts_subdir': 'coffee',  'posts_dir': 'coffee_posts',  'listing_page': 'coffee.html'},
+    {'name': 'misc',    'drafts_subdir': 'misc',    'posts_dir': 'blog_posts',    'listing_page': 'misc_posts.html'},
+]
 
 
 # ---------------------------------------------------------------------------
@@ -342,21 +362,23 @@ class BlogPostGenerator:
 # ---------------------------------------------------------------------------
 
 class PublishPipeline:
-    """Orchestrates RTF → HTML blog post conversion."""
+    """Orchestrates RTF → HTML blog post conversion for a single channel."""
 
-    def __init__(self, project_root: str, *, force: bool = False, dry_run: bool = False):
+    def __init__(self, project_root: str, channel: dict, *, force: bool = False, dry_run: bool = False):
         self.project_root = project_root
-        self.drafts_dir = os.path.join(project_root, 'rtf_drafts')
-        self.posts_dir = os.path.join(project_root, 'blog_posts')
+        self.channel = channel
+        self.drafts_dir = os.path.join(project_root, 'rtf_drafts', channel['drafts_subdir'])
+        self.posts_dir = os.path.join(project_root, channel['posts_dir'])
         self.index_path = os.path.join(self.posts_dir, 'index.json')
         self.published_path = os.path.join(self.drafts_dir, '.published.json')
         self.force = force
         self.dry_run = dry_run
 
-    def run(self) -> None:
+    def run(self) -> int:
+        """Process RTF files for this channel. Returns number processed."""
         if not os.path.isdir(self.drafts_dir):
-            print(f'No rtf_drafts/ directory found at {self.drafts_dir}')
-            sys.exit(1)
+            print(f'  No directory found at {self.drafts_dir} — skipping')
+            return 0
 
         rtf_files = sorted(
             f for f in os.listdir(self.drafts_dir)
@@ -364,8 +386,8 @@ class PublishPipeline:
         )
 
         if not rtf_files:
-            print('No .rtf files found in rtf_drafts/')
-            return
+            print(f'  No .rtf files found')
+            return 0
 
         published = self._load_published()
         index = self._load_index()
@@ -377,10 +399,10 @@ class PublishPipeline:
             content_hash = hashlib.sha256(raw).hexdigest()
 
             if not self.force and published.get(filename) == content_hash:
-                print(f'  skip (unchanged): {filename}')
+                print(f'    skip (unchanged): {filename}')
                 continue
 
-            print(f'  processing: {filename}')
+            print(f'    processing: {filename}')
 
             parser = RTFParser(raw)
             body_html = parser.parse()
@@ -390,20 +412,25 @@ class PublishPipeline:
             html_filename = f'{slug}.html'
             pub_date = date.today()
 
-            full_html = BlogPostGenerator.generate(title, body_html, pub_date)
+            full_html = BlogPostGenerator.generate(
+                title, body_html, pub_date,
+                back_link=self.channel['listing_page'],
+            )
 
             plain_text = _strip_html(body_html)
             excerpt = plain_text[:200].rsplit(' ', 1)[0] + '...' if len(plain_text) > 200 else plain_text
 
+            posts_dir_name = self.channel['posts_dir']
             if self.dry_run:
-                print(f'    [dry-run] would write: blog_posts/{html_filename}')
-                print(f'    [dry-run] title: {title}')
-                print(f'    [dry-run] excerpt: {excerpt[:80]}...')
+                print(f'      [dry-run] would write: {posts_dir_name}/{html_filename}')
+                print(f'      [dry-run] title: {title}')
+                print(f'      [dry-run] excerpt: {excerpt[:80]}...')
             else:
+                os.makedirs(self.posts_dir, exist_ok=True)
                 out_path = os.path.join(self.posts_dir, html_filename)
                 with open(out_path, 'w', encoding='utf-8') as f:
                     f.write(full_html)
-                print(f'    wrote: blog_posts/{html_filename}')
+                print(f'      wrote: {posts_dir_name}/{html_filename}')
 
                 self._upsert_index(index, title, pub_date, excerpt, html_filename)
                 published[filename] = content_hash
@@ -414,8 +441,7 @@ class PublishPipeline:
             self._save_index(index)
             self._save_published(published)
 
-        action = 'previewed' if self.dry_run else 'published'
-        print(f'\nDone — {processed} post(s) {action}, {len(rtf_files) - processed} skipped.')
+        return processed
 
     @staticmethod
     def _extract_title(filename: str) -> str:
@@ -451,9 +477,9 @@ class PublishPipeline:
             json.dump(index, f, indent=2, ensure_ascii=False)
             f.write('\n')
 
-    @staticmethod
-    def _upsert_index(index: dict, title: str, pub_date: date, excerpt: str, html_filename: str) -> None:
-        url = f'blog_posts/{html_filename}'
+    def _upsert_index(self, index: dict, title: str, pub_date: date, excerpt: str, html_filename: str) -> None:
+        posts_dir_name = self.channel['posts_dir']
+        url = f'{posts_dir_name}/{html_filename}'
         entry = {
             'title': title,
             'date': pub_date.isoformat(),
@@ -474,20 +500,35 @@ class PublishPipeline:
 # ---------------------------------------------------------------------------
 
 def main():
+    channel_names = [ch['name'] for ch in CHANNELS]
     parser = argparse.ArgumentParser(
-        description='Convert RTF drafts in rtf_drafts/ to blog posts.'
+        description='Convert RTF drafts in rtf_drafts/<channel>/ to blog posts.'
     )
     parser.add_argument('--force', action='store_true',
                         help='Re-process all RTF files, even unchanged ones')
     parser.add_argument('--dry-run', action='store_true',
                         help='Preview what would happen without writing files')
+    parser.add_argument('--channel', choices=channel_names, default=None,
+                        help='Only process a specific channel (default: all)')
     args = parser.parse_args()
 
     project_root = os.path.dirname(os.path.abspath(__file__))
-    print(f'Publishing RTF drafts from {os.path.join(project_root, "rtf_drafts")}/')
 
-    pipeline = PublishPipeline(project_root, force=args.force, dry_run=args.dry_run)
-    pipeline.run()
+    channels_to_run = CHANNELS
+    if args.channel:
+        channels_to_run = [ch for ch in CHANNELS if ch['name'] == args.channel]
+
+    total_processed = 0
+    total_skipped = 0
+
+    for channel in channels_to_run:
+        print(f'\n[{channel["name"]}] rtf_drafts/{channel["drafts_subdir"]}/ -> {channel["posts_dir"]}/')
+        pipeline = PublishPipeline(project_root, channel, force=args.force, dry_run=args.dry_run)
+        processed = pipeline.run()
+        total_processed += processed
+
+    action = 'previewed' if args.dry_run else 'published'
+    print(f'\nDone — {total_processed} post(s) {action}.')
 
 
 if __name__ == '__main__':

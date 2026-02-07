@@ -1,2 +1,2 @@
 .DS_Store
-rtf_drafts/.published.json
+rtf_drafts/**/.published.json
