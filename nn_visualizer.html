@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #fff;
+            background: linear-gradient(135deg, #04529D 0%, #3A6963 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0 20px;
+            color: white;
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: #EE2835;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.85;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        /* ── Controls panel ─────────────────────────────── */
+        .controls {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 30px 40px;
+            margin: 20px auto 30px;
+            max-width: 700px;
+            display: flex;
+            gap: 40px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: #ED8171;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            accent-color: #EE2835;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.15);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        .control-group select option {
+            background: #1a3a5c;
+            color: white;
+        }
+
+        .lr-input {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.12);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .lr-input:focus {
+            border-color: #EE2835;
+        }
+
+        .lr-input.invalid {
+            border-color: #EE2835;
+            background: rgba(238,40,53,0.15);
+        }
+
+        .epoch-stepper {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-top: 4px;
+        }
+
+        .epoch-stepper button {
+            width: 32px;
+            height: 32px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.12);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .epoch-stepper button:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+
+        .epoch-stepper button:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+
+        .epoch-stepper button:hover:not(:disabled) {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .epoch-stepper button:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        .epoch-value {
+            min-width: 44px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.08);
+            border-top: 1px solid rgba(255,255,255,0.3);
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            padding: 0 8px;
+        }
+
+        .toggle-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            bottom: 2px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: #EE2835;
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(19px);
+        }
+
+        .control-value {
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-top: 4px;
+            color: white;
+        }
+
+        /* ── Input / Target values panels ────────────────── */
+        .values-panels {
+            display: flex;
+            gap: 16px;
+            margin: 0 auto 20px;
+            max-width: 700px;
+            flex-wrap: wrap;
+        }
+
+        .input-panel {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 20px 30px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-panel-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #ED8171;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .input-fields {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .input-field span {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .input-field input {
+            width: 60px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.12);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-field input:focus {
+            border-color: #EE2835;
+        }
+
+        .input-field input.invalid {
+            border-color: #EE2835;
+            background: rgba(238,40,53,0.15);
+        }
+
+        /* ── Stats bar ──────────────────────────────────── */
+        .stats {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .stats span {
+            display: inline-block;
+            background: rgba(255,255,255,0.1);
+            padding: 6px 16px;
+            border-radius: 12px;
+            margin: 4px 6px;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .stats strong {
+            color: #ED8171;
+        }
+
+        /* ── Canvas area ────────────────────────────────── */
+        .canvas-wrap {
+            background: rgba(0,0,0,0.25);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 1100px;
+            overflow-x: auto;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* ── Layer legend ───────────────────────────────── */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: white;
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 2rem; }
+            .controls { padding: 20px; gap: 20px; }
+            .control-group { min-width: 140px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-link">&larr; Home</a>
+            <h1>Neural Network Visualizer</h1>
+            <p>Adjust layers and features to explore deep network architectures</p>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="layersSlider">Number of Layers</label>
+                <input type="range" id="layersSlider" min="2" max="5" value="4">
+                <div class="control-value" id="layersValue">4</div>
+            </div>
+            <div class="control-group">
+                <label for="featuresSlider">Feature Count</label>
+                <input type="range" id="featuresSlider" min="1" max="12" value="8">
+                <div class="control-value" id="featuresValue">8</div>
+            </div>
+            <div class="control-group">
+                <label for="activationSelect">Activation Function</label>
+                <select id="activationSelect">
+                    <option value="relu">ReLU</option>
+                    <option value="sigmoid">Sigmoid</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Output Softmax</label>
+                <div class="toggle-wrap">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="softmaxToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span id="softmaxLabel" style="font-size:0.95rem">Off</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="lrInput">Learning Rate</label>
+                <input type="text" id="lrInput" inputmode="decimal" value="0.01" class="lr-input">
+            </div>
+            <div class="control-group">
+                <label>Epoch</label>
+                <div class="epoch-stepper">
+                    <button id="epochBack" disabled>&#9664;</button>
+                    <div class="epoch-value" id="epochValue">0</div>
+                    <button id="epochForward">&#9654;</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="values-panels">
+            <div class="input-panel" id="inputPanel">
+                <span class="input-panel-label">Input Values</span>
+                <div class="input-fields" id="inputFields"></div>
+            </div>
+            <div class="input-panel" id="targetPanel">
+                <span class="input-panel-label">Target Values</span>
+                <div class="input-fields" id="targetFields"></div>
+            </div>
+        </div>
+
+        <div class="stats" id="stats"></div>
+
+        <div class="canvas-wrap">
+            <canvas id="nnCanvas"></canvas>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#EE2835"></div> Input</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#3A6963"></div> Hidden</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ED8171"></div> Output</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgb(100,220,255)"></div> +weight</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgb(238,40,53)"></div> &minus;weight</div>
+        </div>
+
+        <footer>
+            <p>&copy; 2024 DexWebsite</p>
+        </footer>
+    </div>
+
+    <script>
+    (function () {
+        const canvas = document.getElementById('nnCanvas');
+        const ctx = canvas.getContext('2d');
+        const layersSlider = document.getElementById('layersSlider');
+        const featuresSlider = document.getElementById('featuresSlider');
+        const activationSelect = document.getElementById('activationSelect');
+        const softmaxToggle = document.getElementById('softmaxToggle');
+        const softmaxLabel = document.getElementById('softmaxLabel');
+        const layersValue = document.getElementById('layersValue');
+        const featuresValue = document.getElementById('featuresValue');
+        const statsEl = document.getElementById('stats');
+        const inputFieldsEl = document.getElementById('inputFields');
+        const targetFieldsEl = document.getElementById('targetFields');
+        const lrInput = document.getElementById('lrInput');
+        const epochBack = document.getElementById('epochBack');
+        const epochForward = document.getElementById('epochForward');
+        const epochValueEl = document.getElementById('epochValue');
+        let epoch = 0;
+
+        let lastFeatureCount = 0;
+        let lastOutputCount = 0;
+        let stepping = false;  // prevent concurrent step requests
+
+        // ── Colours ────────────────────────────────────────
+        const COLORS = {
+            input:  '#EE2835',
+            hidden: '#3A6963',
+            output: '#ED8171',
+            edge:   'rgba(255,255,255,0.12)',
+            edgeHighlight: 'rgba(255,255,255,0.35)',
+            text:   'rgba(255,255,255,0.7)',
+        };
+
+        let currentData = null;
+        let animProgress = 1;
+        let animId = null;
+        let hoveredNode = null;  // {layer, index}
+
+        // ── Input field management ───────────────────────
+        function buildInputFields(count) {
+            const oldValues = getInputValues();
+            inputFieldsEl.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const wrap = document.createElement('div');
+                wrap.className = 'input-field';
+                const label = document.createElement('span');
+                label.textContent = `x${i + 1}`;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.inputMode = 'decimal';
+                input.value = i < oldValues.length ? oldValues[i] : (i + 1);
+                input.addEventListener('input', function () {
+                    const raw = this.value;
+                    const valid = /^-?(\d+\.?\d*|\.\d+)$/.test(raw);
+                    this.classList.toggle('invalid', raw !== '' && !valid);
+                });
+                input.addEventListener('change', function () {
+                    const raw = this.value.trim();
+                    if (raw === '' || !/^-?(\d+\.?\d*|\.\d+)$/.test(raw)) {
+                        this.value = i + 1;
+                        this.classList.remove('invalid');
+                    }
+                    fetchNetwork();
+                });
+                wrap.appendChild(label);
+                wrap.appendChild(input);
+                inputFieldsEl.appendChild(wrap);
+            }
+            lastFeatureCount = count;
+        }
+
+        function getInputValues() {
+            const inputs = inputFieldsEl.querySelectorAll('input');
+            const vals = [];
+            for (const inp of inputs) {
+                const v = parseFloat(inp.value);
+                vals.push(isNaN(v) ? 0 : v);
+            }
+            return vals;
+        }
+
+        // ── Target field management ──────────────────────
+        function buildTargetFields(count) {
+            const oldValues = getTargetValues();
+            targetFieldsEl.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const wrap = document.createElement('div');
+                wrap.className = 'input-field';
+                const label = document.createElement('span');
+                label.textContent = `y${i + 1}`;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.inputMode = 'decimal';
+                input.value = i < oldValues.length ? oldValues[i] : '1.0';
+                input.addEventListener('input', function () {
+                    const raw = this.value;
+                    const valid = /^-?(\d+\.?\d*|\.\d+)$/.test(raw);
+                    this.classList.toggle('invalid', raw !== '' && !valid);
+                });
+                input.addEventListener('change', function () {
+                    const raw = this.value.trim();
+                    if (raw === '' || !/^-?(\d+\.?\d*|\.\d+)$/.test(raw)) {
+                        this.value = '1.0';
+                        this.classList.remove('invalid');
+                    }
+                    fetchNetwork();
+                });
+                wrap.appendChild(label);
+                wrap.appendChild(input);
+                targetFieldsEl.appendChild(wrap);
+            }
+            lastOutputCount = count;
+        }
+
+        function getTargetValues() {
+            const inputs = targetFieldsEl.querySelectorAll('input');
+            const vals = [];
+            for (const inp of inputs) {
+                const v = parseFloat(inp.value);
+                vals.push(isNaN(v) ? 1.0 : v);
+            }
+            return vals;
+        }
+
+        // ── Learning rate ────────────────────────────────
+        function getLearningRate() {
+            const v = parseFloat(lrInput.value);
+            return isNaN(v) ? 0.01 : v;
+        }
+
+        lrInput.addEventListener('input', function () {
+            const raw = this.value;
+            const valid = /^-?(\d+\.?\d*|\.\d+)$/.test(raw);
+            this.classList.toggle('invalid', raw !== '' && !valid);
+        });
+
+        lrInput.addEventListener('change', function () {
+            const raw = this.value.trim();
+            if (raw === '' || !/^-?(\d+\.?\d*|\.\d+)$/.test(raw)) {
+                this.value = '0.01';
+                this.classList.remove('invalid');
+            }
+        });
+
+        // ── Epoch stepper ────────────────────────────────
+        function updateEpochUI() {
+            epochValueEl.textContent = epoch;
+            epochBack.disabled = epoch <= 0 || stepping;
+            epochForward.disabled = stepping;
+        }
+
+        epochForward.addEventListener('click', async function () {
+            if (stepping) return;
+            stepping = true;
+            updateEpochUI();
+
+            try {
+                const resp = await fetch('/api/step', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        lr: getLearningRate(),
+                        inputs: getInputValues(),
+                        targets: getTargetValues(),
+                    }),
+                });
+                const data = await resp.json();
+                currentData = data;
+                epoch = data.epoch;
+                updateStats(data);
+                startAnimation();
+            } catch (err) {
+                console.error('Step error:', err);
+            } finally {
+                stepping = false;
+                updateEpochUI();
+            }
+        });
+
+        epochBack.addEventListener('click', async function () {
+            if (stepping || epoch <= 0) return;
+            stepping = true;
+            updateEpochUI();
+
+            try {
+                const resp = await fetch('/api/back', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                const data = await resp.json();
+                currentData = data;
+                epoch = data.epoch;
+                updateStats(data);
+                startAnimation();
+            } catch (err) {
+                console.error('Step-back error:', err);
+            } finally {
+                stepping = false;
+                updateEpochUI();
+            }
+        });
+
+        // ── Compute output size from feature count ───────
+        function computeOutputSize(features) {
+            return Math.max(1, Math.floor(features / 4));
+        }
+
+        // ── Fetch network from backend ─────────────────────
+        async function fetchNetwork() {
+            const layers = layersSlider.value;
+            const features = parseInt(featuresSlider.value);
+            const activation = activationSelect.value;
+            const softmax = softmaxToggle.checked ? '1' : '0';
+            layersValue.textContent = layers;
+            featuresValue.textContent = features;
+            softmaxLabel.textContent = softmaxToggle.checked ? 'On' : 'Off';
+
+            // Rebuild input fields if feature count changed
+            if (features !== lastFeatureCount) {
+                buildInputFields(features);
+            }
+
+            // Rebuild target fields if output size changed
+            const outSize = computeOutputSize(features);
+            if (outSize !== lastOutputCount) {
+                buildTargetFields(outSize);
+            }
+
+            const inputVals = getInputValues();
+            const targetVals = getTargetValues();
+            const inputsParam = inputVals.join(',');
+            const targetsParam = targetVals.join(',');
+
+            // Reset epoch on architecture change
+            epoch = 0;
+            updateEpochUI();
+
+            try {
+                const resp = await fetch(`/api/network?layers=${layers}&features=${features}&activation=${activation}&softmax=${softmax}&inputs=${encodeURIComponent(inputsParam)}&targets=${encodeURIComponent(targetsParam)}`);
+                const data = await resp.json();
+                currentData = data;
+                epoch = data.epoch;
+                updateEpochUI();
+                startAnimation();
+                updateStats(data);
+            } catch (err) {
+                console.error('Backend error:', err);
+            }
+        }
+
+        function updateStats(data) {
+            const sizes = data.layers.join(' &rarr; ');
+            const actLabel = data.activation === 'sigmoid' ? 'Sigmoid' : 'ReLU';
+            let html =
+                `<span><strong>Architecture:</strong> ${sizes}</span>` +
+                `<span><strong>Activation:</strong> ${actLabel}</span>` +
+                `<span><strong>Parameters:</strong> ${data.total_params.toLocaleString()}</span>`;
+            if (data.loss != null) {
+                html += `<span><strong>Loss:</strong> ${data.loss.toFixed(6)}</span>`;
+            }
+            if (data.node_values) {
+                const outLayer = data.node_values[data.node_values.length - 1];
+                html += `<span><strong>Output:</strong> ${outLayer.map(v => v.toFixed(4)).join(', ')}</span>`;
+            }
+            statsEl.innerHTML = html;
+        }
+
+        // ── Animation ──────────────────────────────────────
+        function startAnimation() {
+            animProgress = 0;
+            if (animId) cancelAnimationFrame(animId);
+            function step() {
+                animProgress = Math.min(1, animProgress + 0.045);
+                draw();
+                if (animProgress < 1) animId = requestAnimationFrame(step);
+            }
+            animId = requestAnimationFrame(step);
+        }
+
+        // ── Drawing ────────────────────────────────────────
+        function draw() {
+            if (!currentData) return;
+
+            const data = currentData;
+            const numLayers = data.layers.length;
+            const maxNodes = Math.max(...data.layers);
+
+            // Size canvas
+            const dpr = window.devicePixelRatio || 1;
+            const wrapWidth = canvas.parentElement.clientWidth - 40;
+            const W = Math.max(500, wrapWidth);
+            const H = Math.max(350, Math.min(600, maxNodes * 42 + 80));
+            canvas.width = W * dpr;
+            canvas.height = H * dpr;
+            canvas.style.width = W + 'px';
+            canvas.style.height = H + 'px';
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            ctx.clearRect(0, 0, W, H);
+
+            const padX = 80;
+            const padY = 40;
+            const layerSpacing = (W - padX * 2) / (numLayers - 1 || 1);
+
+            // pre-compute node positions
+            const positions = [];
+            for (let l = 0; l < numLayers; l++) {
+                const count = data.layers[l];
+                const totalH = H - padY * 2;
+                const nodeSpacing = totalH / (count + 1);
+                const layerPos = [];
+                for (let n = 0; n < count; n++) {
+                    layerPos.push({
+                        x: padX + l * layerSpacing,
+                        y: padY + nodeSpacing * (n + 1),
+                    });
+                }
+                positions.push(layerPos);
+            }
+
+            const ease = easeOutCubic(animProgress);
+
+            // ── Draw edges (coloured by weight) ─────────────
+            for (let l = 0; l < numLayers - 1; l++) {
+                const from = positions[l];
+                const to = positions[l + 1];
+                const Wl = data.weights && data.weights[l];
+                for (let i = 0; i < from.length; i++) {
+                    for (let j = 0; j < to.length; j++) {
+                        const highlight =
+                            hoveredNode &&
+                            ((hoveredNode.layer === l && hoveredNode.index === i) ||
+                             (hoveredNode.layer === l + 1 && hoveredNode.index === j));
+
+                        // Weight-based colour: positive → cyan, negative → red
+                        let edgeColor = COLORS.edge;
+                        let edgeWidth = 0.7;
+                        if (Wl) {
+                            const w = Wl[i][j];
+                            const absW = Math.min(Math.abs(w), 1);
+                            const alpha = 0.08 + absW * 0.5;
+                            if (highlight) {
+                                edgeColor = w >= 0
+                                    ? `rgba(100,220,255,${Math.min(1, alpha + 0.3)})`
+                                    : `rgba(238,40,53,${Math.min(1, alpha + 0.3)})`;
+                                edgeWidth = 1.0 + absW * 2.5;
+                            } else {
+                                edgeColor = w >= 0
+                                    ? `rgba(100,220,255,${alpha})`
+                                    : `rgba(238,40,53,${alpha})`;
+                                edgeWidth = 0.4 + absW * 1.5;
+                            }
+                        } else if (highlight) {
+                            edgeColor = COLORS.edgeHighlight;
+                            edgeWidth = 1.5;
+                        }
+
+                        ctx.beginPath();
+                        ctx.strokeStyle = edgeColor;
+                        ctx.lineWidth = edgeWidth;
+                        const fx = from[i].x;
+                        const fy = from[i].y;
+                        const tx = from[i].x + (to[j].x - from[i].x) * ease;
+                        const ty = from[i].y + (to[j].y - from[i].y) * ease;
+                        ctx.moveTo(fx, fy);
+                        ctx.lineTo(tx, ty);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // ── Draw nodes ─────────────────────────────────
+            const maxR = 14;
+            const minR = 6;
+            const nodeR = Math.max(minR, Math.min(maxR, 200 / maxNodes));
+            const showLabelsInside = nodeR >= 10;
+
+            for (let l = 0; l < numLayers; l++) {
+                const color = l === 0 ? COLORS.input
+                            : l === numLayers - 1 ? COLORS.output
+                            : COLORS.hidden;
+                for (let n = 0; n < positions[l].length; n++) {
+                    const p = positions[l][n];
+                    const r = nodeR * ease;
+                    const isHovered = hoveredNode && hoveredNode.layer === l && hoveredNode.index === n;
+                    const nodeName = data.node_names && data.node_names[l] ? data.node_names[l][n] : '';
+                    const nodeVal = data.node_values && data.node_values[l] != null ? data.node_values[l][n] : null;
+
+                    // glow
+                    if (isHovered) {
+                        ctx.beginPath();
+                        const grad = ctx.createRadialGradient(p.x, p.y, r, p.x, p.y, r * 3);
+                        grad.addColorStop(0, color + '88');
+                        grad.addColorStop(1, 'transparent');
+                        ctx.fillStyle = grad;
+                        ctx.arc(p.x, p.y, r * 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    // node circle
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                    ctx.lineWidth = isHovered ? 2.5 : 1.2;
+                    ctx.stroke();
+
+                    // Format value for display
+                    const fmtVal = nodeVal != null ? (Math.abs(nodeVal) >= 100 ? nodeVal.toFixed(0) : nodeVal.toFixed(2)) : '';
+
+                    if (showLabelsInside) {
+                        // Name above node, value inside
+                        ctx.font = `bold ${Math.max(7, r * 0.55)}px Segoe UI, sans-serif`;
+                        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.fillText(nodeName, p.x, p.y - r - 2);
+
+                        if (fmtVal) {
+                            ctx.font = `bold ${Math.max(7, r * 0.7)}px Segoe UI, sans-serif`;
+                            ctx.fillStyle = 'white';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(fmtVal, p.x, p.y);
+                        }
+                    } else if (isHovered) {
+                        // Tooltip above the node: "name = value"
+                        const tip = fmtVal ? `${nodeName} = ${fmtVal}` : nodeName;
+                        ctx.font = 'bold 11px Segoe UI, sans-serif';
+                        ctx.fillStyle = 'white';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.fillText(tip, p.x, p.y - r - 4);
+                    }
+                }
+            }
+
+            // ── Layer labels ───────────────────────────────
+            ctx.font = '12px Segoe UI, sans-serif';
+            ctx.fillStyle = COLORS.text;
+            ctx.textAlign = 'center';
+            for (let l = 0; l < numLayers; l++) {
+                const x = padX + l * layerSpacing;
+                ctx.fillText(data.labels[l], x, H - 10);
+                ctx.fillText(`(${data.layers[l]})`, x, H - 24);
+            }
+        }
+
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+        }
+
+        // ── Hover detection ────────────────────────────────
+        canvas.addEventListener('mousemove', function (e) {
+            if (!currentData) return;
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+
+            const numLayers = currentData.layers.length;
+            const maxNodes = Math.max(...currentData.layers);
+            const W = parseFloat(canvas.style.width);
+            const H = parseFloat(canvas.style.height);
+            const padX = 80;
+            const padY = 40;
+            const layerSpacing = (W - padX * 2) / (numLayers - 1 || 1);
+            const nodeR = Math.max(6, Math.min(14, 200 / maxNodes));
+
+            let found = null;
+            for (let l = 0; l < numLayers; l++) {
+                const count = currentData.layers[l];
+                const totalH = H - padY * 2;
+                const nodeSpacing = totalH / (count + 1);
+                for (let n = 0; n < count; n++) {
+                    const nx = padX + l * layerSpacing;
+                    const ny = padY + nodeSpacing * (n + 1);
+                    const dist = Math.hypot(mx - nx, my - ny);
+                    if (dist <= nodeR + 4) {
+                        found = { layer: l, index: n };
+                        break;
+                    }
+                }
+                if (found) break;
+            }
+
+            if (found !== hoveredNode) {
+                hoveredNode = found;
+                canvas.style.cursor = found ? 'pointer' : 'default';
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mouseleave', function () {
+            if (hoveredNode) {
+                hoveredNode = null;
+                draw();
+            }
+        });
+
+        // ── Event wiring ───────────────────────────────────
+        layersSlider.addEventListener('input', fetchNetwork);
+        featuresSlider.addEventListener('input', fetchNetwork);
+        activationSelect.addEventListener('change', fetchNetwork);
+        softmaxToggle.addEventListener('change', fetchNetwork);
+        window.addEventListener('resize', draw);
+
+        // initial load
+        buildInputFields(parseInt(featuresSlider.value));
+        buildTargetFields(computeOutputSize(parseInt(featuresSlider.value)));
+        fetchNetwork();
+    })();
+    </script>
+</body>
+</html>
