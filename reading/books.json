@@ -1,0 +1,9 @@
+{
+    "books": [
+        {
+            "title": "Example Book Title",
+            "author": "Author Name",
+            "comment": "A brief comment about why this book is worth reading."
+        }
+    ]
+}

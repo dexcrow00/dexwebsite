@@ -84,6 +84,7 @@ class Network:
         self.z_vals = []      # pre-activation values
         self.a_vals = []      # post-activation values (activations)
         self.loss = 0.0
+        self.gradients = None
         self.forward()
 
         # Snapshot history for stepping back
@@ -94,17 +95,23 @@ class Network:
         self.z_vals = [None]  # input layer has no z
         self.a_vals = [list(self.inputs)]
 
-        for l in range(len(self.weights)):
+        num_weight_layers = len(self.weights)
+        for l in range(num_weight_layers):
             prev = self.a_vals[-1]
             fan_in = len(prev)
             fan_out = self.layer_sizes[l + 1]
+            is_output = (l == num_weight_layers - 1)
             z_layer = []
             a_layer = []
             for j in range(fan_out):
                 z = sum(prev[i] * self.weights[l][i][j]
                         for i in range(fan_in)) + self.biases[l][j]
                 z_layer.append(z)
-                a_layer.append(self.act_fn(z))
+                # Output layer uses linear activation; hidden layers use chosen activation
+                if is_output:
+                    a_layer.append(z)
+                else:
+                    a_layer.append(self.act_fn(z))
             self.z_vals.append(z_layer)
             self.a_vals.append(a_layer)
 
@@ -121,31 +128,72 @@ class Network:
         n = len(out)
         self.loss = sum((out[i] - self.targets[i]) ** 2 for i in range(n)) / n
 
+        self.compute_gradients()
+
+    def compute_gradients(self):
+        """Compute dL/dw for all weights at current network state."""
+        num_weight_layers = len(self.weights)
+        out = self.a_vals[-1]
+        n = len(out)
+
+        if self.softmax and n > 1:
+            dl_ds = [(2.0 / n) * (out[i] - self.targets[i]) for i in range(n)]
+            sm = out
+            delta = [0.0] * n
+            for j in range(n):
+                for ii in range(n):
+                    kronecker = 1.0 if ii == j else 0.0
+                    delta[j] += dl_ds[ii] * sm[ii] * (kronecker - sm[j])
+        else:
+            delta = [(2.0 / n) * (out[j] - self.targets[j]) for j in range(n)]
+
+        deltas = [None] * num_weight_layers
+        deltas[-1] = delta
+
+        for l in range(num_weight_layers - 2, -1, -1):
+            fan_out_prev = len(deltas[l + 1])
+            fan_out_curr = self.layer_sizes[l + 1]
+            z_layer = self.z_vals[l + 1]
+            new_delta = []
+            for k in range(fan_out_curr):
+                s_val = sum(self.weights[l + 1][k][j] * deltas[l + 1][j]
+                            for j in range(fan_out_prev))
+                new_delta.append(s_val * self.act_deriv(z_layer[k]))
+            deltas[l] = new_delta
+
+        self.gradients = []
+        for l in range(num_weight_layers):
+            a_prev = self.a_vals[l]
+            fan_in = len(a_prev)
+            fan_out = len(deltas[l])
+            grad_layer = []
+            for i in range(fan_in):
+                grad_row = []
+                for j in range(fan_out):
+                    grad_row.append(a_prev[i] * deltas[l][j])
+                grad_layer.append(grad_row)
+            self.gradients.append(grad_layer)
+
     def backward(self, lr):
         """Backpropagate and update weights/biases."""
         num_weight_layers = len(self.weights)
         out = self.a_vals[-1]
         n = len(out)
 
-        # Compute output layer delta
+        # Compute output layer delta (output layer uses linear activation, deriv = 1)
         if self.softmax and n > 1:
             # dL/ds = (2/n)(s - t)
             dl_ds = [(2.0 / n) * (out[i] - self.targets[i]) for i in range(n)]
             # Softmax Jacobian: dL/da[j] = sum_i(dL/ds[i] * s[i] * (delta_ij - s[j]))
             s = out  # softmax output
-            dl_da = [0.0] * n
+            delta = [0.0] * n
             for j in range(n):
                 for i in range(n):
                     kronecker = 1.0 if i == j else 0.0
-                    dl_da[j] += dl_ds[i] * s[i] * (kronecker - s[j])
-            # Through activation derivative
-            z_out = self.z_vals[-1]
-            delta = [dl_da[j] * self.act_deriv(z_out[j]) for j in range(n)]
+                    delta[j] += dl_ds[i] * s[i] * (kronecker - s[j])
         else:
-            # dL/dz = (2/n)(a - t) * act'(z)
-            z_out = self.z_vals[-1]
-            delta = [(2.0 / n) * (out[j] - self.targets[j]) * self.act_deriv(z_out[j])
-                     for j in range(n)]
+            # Output is linear: dL/dz = (2/n)(a - t)
+            delta = [(2.0 / n) * (out[j] - self.targets[j]) for j in range(n)]
 
         # Store deltas per layer (index 0 = first weight layer)
         deltas = [None] * num_weight_layers
@@ -246,6 +294,11 @@ class Network:
         for b in self.biases:
             biases_rounded.append([round(v, 4) for v in b])
 
+        gradients_rounded = []
+        if self.gradients:
+            for G in self.gradients:
+                gradients_rounded.append([[round(g, 6) for g in row] for row in G])
+
         return {
             "layers": self.layer_sizes,
             "labels": labels,
@@ -253,6 +306,7 @@ class Network:
             "node_values": node_values,
             "weights": weights_rounded,
             "biases": biases_rounded,
+            "gradients": gradients_rounded,
             "activation": self.activation,
             "softmax": self.softmax,
             "total_params": total_params,

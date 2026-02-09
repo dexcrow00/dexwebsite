@@ -20,7 +20,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -254,13 +254,13 @@
             color: white;
         }
 
-        /* ── Input / Target values panels ────────────────── */
-        .values-panels {
+        /* ── Visualization area with side panels ─────────── */
+        .viz-row {
             display: flex;
+            align-items: stretch;
             gap: 16px;
-            margin: 0 auto 20px;
-            max-width: 700px;
-            flex-wrap: wrap;
+            margin: 0 auto;
+            max-width: 1200px;
         }
 
         .input-panel {
@@ -268,46 +268,52 @@
             backdrop-filter: blur(10px);
             border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.2);
-            padding: 20px 30px;
-            flex: 1;
-            min-width: 200px;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+            flex-shrink: 0;
         }
 
         .input-panel-label {
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             color: #ED8171;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             display: block;
+            white-space: nowrap;
         }
 
         .input-fields {
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 6px;
             align-items: center;
         }
 
         .input-field {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 2px;
+            gap: 4px;
         }
 
         .input-field span {
             font-size: 0.75rem;
             color: rgba(255,255,255,0.6);
+            min-width: 20px;
+            text-align: right;
         }
 
         .input-field input {
-            width: 60px;
-            padding: 6px 8px;
+            width: 52px;
+            padding: 4px 6px;
             border-radius: 8px;
             border: 1px solid rgba(255,255,255,0.3);
             background: rgba(255,255,255,0.12);
             color: white;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             text-align: center;
             outline: none;
@@ -351,8 +357,8 @@
             border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.15);
             padding: 20px;
-            margin: 0 auto;
-            max-width: 1100px;
+            flex: 1;
+            min-width: 0;
             overflow-x: auto;
         }
 
@@ -396,6 +402,21 @@
             header h1 { font-size: 2rem; }
             .controls { padding: 20px; gap: 20px; }
             .control-group { min-width: 140px; }
+            .viz-row {
+                flex-direction: column;
+            }
+            .input-panel {
+                flex-direction: row;
+                min-width: unset;
+            }
+            .input-panel-label {
+                margin-bottom: 0;
+                margin-right: 12px;
+            }
+            .input-fields {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
         }
     </style>
 </head>
@@ -410,13 +431,13 @@
         <div class="controls">
             <div class="control-group">
                 <label for="layersSlider">Number of Layers</label>
-                <input type="range" id="layersSlider" min="2" max="5" value="4">
-                <div class="control-value" id="layersValue">4</div>
+                <input type="range" id="layersSlider" min="2" max="5" value="3">
+                <div class="control-value" id="layersValue">3</div>
             </div>
             <div class="control-group">
                 <label for="featuresSlider">Feature Count</label>
-                <input type="range" id="featuresSlider" min="1" max="12" value="8">
-                <div class="control-value" id="featuresValue">8</div>
+                <input type="range" id="featuresSlider" min="1" max="12" value="3">
+                <div class="control-value" id="featuresValue">3</div>
             </div>
             <div class="control-group">
                 <label for="activationSelect">Activation Function</label>
@@ -449,21 +470,22 @@
             </div>
         </div>
 
-        <div class="values-panels">
-            <div class="input-panel" id="inputPanel">
-                <span class="input-panel-label">Input Values</span>
-                <div class="input-fields" id="inputFields"></div>
-            </div>
-            <div class="input-panel" id="targetPanel">
-                <span class="input-panel-label">Target Values</span>
-                <div class="input-fields" id="targetFields"></div>
-            </div>
-        </div>
-
         <div class="stats" id="stats"></div>
 
-        <div class="canvas-wrap">
-            <canvas id="nnCanvas"></canvas>
+        <div class="viz-row">
+            <div class="input-panel" id="inputPanel">
+                <span class="input-panel-label">Inputs</span>
+                <div class="input-fields" id="inputFields"></div>
+            </div>
+
+            <div class="canvas-wrap">
+                <canvas id="nnCanvas"></canvas>
+            </div>
+
+            <div class="input-panel" id="targetPanel">
+                <span class="input-panel-label">Targets</span>
+                <div class="input-fields" id="targetFields"></div>
+            </div>
         </div>
 
         <div class="legend">
@@ -517,6 +539,7 @@
         let animProgress = 1;
         let animId = null;
         let hoveredNode = null;  // {layer, index}
+        let hoveredEdge = null;  // {layer, from, to}
 
         // ── Input field management ───────────────────────
         function buildInputFields(count) {
@@ -731,12 +754,7 @@
         }
 
         function updateStats(data) {
-            const sizes = data.layers.join(' &rarr; ');
-            const actLabel = data.activation === 'sigmoid' ? 'Sigmoid' : 'ReLU';
-            let html =
-                `<span><strong>Architecture:</strong> ${sizes}</span>` +
-                `<span><strong>Activation:</strong> ${actLabel}</span>` +
-                `<span><strong>Parameters:</strong> ${data.total_params.toLocaleString()}</span>`;
+            let html = `<span><strong>Loss Function:</strong> MSE</span>`;
             if (data.loss != null) {
                 html += `<span><strong>Loss:</strong> ${data.loss.toFixed(6)}</span>`;
             }
@@ -757,6 +775,15 @@
                 if (animProgress < 1) animId = requestAnimationFrame(step);
             }
             animId = requestAnimationFrame(step);
+        }
+
+        function pointToSegDist(px, py, x1, y1, x2, y2) {
+            const dx = x2 - x1, dy = y2 - y1;
+            const lenSq = dx * dx + dy * dy;
+            if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+            let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+            t = Math.max(0, Math.min(1, t));
+            return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
         }
 
         // ── Drawing ────────────────────────────────────────
@@ -803,16 +830,21 @@
             const ease = easeOutCubic(animProgress);
 
             // ── Draw edges (coloured by weight) ─────────────
+            const weightLabels = [];  // collect labels to draw on top
             for (let l = 0; l < numLayers - 1; l++) {
                 const from = positions[l];
                 const to = positions[l + 1];
                 const Wl = data.weights && data.weights[l];
                 for (let i = 0; i < from.length; i++) {
                     for (let j = 0; j < to.length; j++) {
-                        const highlight =
-                            hoveredNode &&
+                        const isEdgeHovered = hoveredEdge &&
+                            hoveredEdge.layer === l &&
+                            hoveredEdge.from === i &&
+                            hoveredEdge.to === j;
+                        const highlight = isEdgeHovered ||
+                            (hoveredNode &&
                             ((hoveredNode.layer === l && hoveredNode.index === i) ||
-                             (hoveredNode.layer === l + 1 && hoveredNode.index === j));
+                             (hoveredNode.layer === l + 1 && hoveredNode.index === j)));
 
                         // Weight-based colour: positive → cyan, negative → red
                         let edgeColor = COLORS.edge;
@@ -847,6 +879,64 @@
                         ctx.moveTo(fx, fy);
                         ctx.lineTo(tx, ty);
                         ctx.stroke();
+
+                        // Queue weight label (only on hover)
+                        if (Wl && highlight) {
+                            const w = Wl[i][j];
+                            const mx = (fx + tx) / 2;
+                            const my = (fy + ty) / 2;
+                            // Offset label perpendicular to the edge so it doesn't sit on the line
+                            const dx = tx - fx;
+                            const dy = ty - fy;
+                            const len = Math.hypot(dx, dy) || 1;
+                            const offX = -(dy / len) * 8;
+                            const offY =  (dx / len) * 8;
+                            const lbl = {
+                                text: Math.abs(w) >= 100 ? w.toFixed(0) : w.toFixed(2),
+                                x: mx + offX,
+                                y: my + offY,
+                                color: w >= 0 ? 'rgb(100,220,255)' : 'rgb(238,40,53)',
+                            };
+                            if (isEdgeHovered && data.gradients && data.gradients[l]) {
+                                const g = data.gradients[l][i][j];
+                                lbl.gradText = '\u2207 ' + (Math.abs(g) >= 100 ? g.toFixed(0) : g.toFixed(4));
+                                lbl.gradColor = g >= 0 ? 'rgb(100,220,255)' : 'rgb(238,40,53)';
+                            }
+                            weightLabels.push(lbl);
+                        }
+                    }
+                }
+            }
+
+            // ── Draw weight labels on top of edges ──────────
+            if (weightLabels.length > 0) {
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                for (const lbl of weightLabels) {
+                    const fontSize = 11;
+                    ctx.font = `600 ${fontSize}px "Segoe UI", system-ui, sans-serif`;
+                    const tm = ctx.measureText(lbl.text);
+                    let pw, ph;
+                    if (lbl.gradText) {
+                        const gm = ctx.measureText(lbl.gradText);
+                        pw = Math.max(tm.width, gm.width) + 10;
+                        ph = fontSize * 2 + 12;
+                    } else {
+                        pw = tm.width + 8;
+                        ph = fontSize + 6;
+                    }
+                    ctx.fillStyle = 'rgba(0,0,0,0.85)';
+                    ctx.beginPath();
+                    ctx.roundRect(lbl.x - pw / 2, lbl.y - ph / 2, pw, ph, 4);
+                    ctx.fill();
+                    if (lbl.gradText) {
+                        ctx.fillStyle = lbl.color;
+                        ctx.fillText(lbl.text, lbl.x, lbl.y - fontSize * 0.55);
+                        ctx.fillStyle = lbl.gradColor;
+                        ctx.fillText(lbl.gradText, lbl.x, lbl.y + fontSize * 0.55);
+                    } else {
+                        ctx.fillStyle = lbl.color;
+                        ctx.fillText(lbl.text, lbl.x, lbl.y);
                     }
                 }
             }
@@ -948,7 +1038,8 @@
             const layerSpacing = (W - padX * 2) / (numLayers - 1 || 1);
             const nodeR = Math.max(6, Math.min(14, 200 / maxNodes));
 
-            let found = null;
+            // Check nodes first (priority over edges)
+            let foundNode = null;
             for (let l = 0; l < numLayers; l++) {
                 const count = currentData.layers[l];
                 const totalH = H - padY * 2;
@@ -958,23 +1049,58 @@
                     const ny = padY + nodeSpacing * (n + 1);
                     const dist = Math.hypot(mx - nx, my - ny);
                     if (dist <= nodeR + 4) {
-                        found = { layer: l, index: n };
+                        foundNode = { layer: l, index: n };
                         break;
                     }
                 }
-                if (found) break;
+                if (foundNode) break;
             }
 
-            if (found !== hoveredNode) {
-                hoveredNode = found;
-                canvas.style.cursor = found ? 'pointer' : 'default';
+            // Check edges if no node found
+            let foundEdge = null;
+            if (!foundNode) {
+                let minDist = 5;
+                const totalH = H - padY * 2;
+                for (let l = 0; l < numLayers - 1; l++) {
+                    const countFrom = currentData.layers[l];
+                    const countTo = currentData.layers[l + 1];
+                    const spacingFrom = totalH / (countFrom + 1);
+                    const spacingTo = totalH / (countTo + 1);
+                    for (let i = 0; i < countFrom; i++) {
+                        const fx = padX + l * layerSpacing;
+                        const fy = padY + spacingFrom * (i + 1);
+                        for (let j = 0; j < countTo; j++) {
+                            const tx = padX + (l + 1) * layerSpacing;
+                            const ty = padY + spacingTo * (j + 1);
+                            const d = pointToSegDist(mx, my, fx, fy, tx, ty);
+                            if (d < minDist) {
+                                minDist = d;
+                                foundEdge = { layer: l, from: i, to: j };
+                            }
+                        }
+                    }
+                }
+            }
+
+            const changed =
+                (foundNode?.layer !== hoveredNode?.layer) ||
+                (foundNode?.index !== hoveredNode?.index) ||
+                (foundEdge?.layer !== hoveredEdge?.layer) ||
+                (foundEdge?.from !== hoveredEdge?.from) ||
+                (foundEdge?.to !== hoveredEdge?.to);
+
+            if (changed) {
+                hoveredNode = foundNode;
+                hoveredEdge = foundEdge;
+                canvas.style.cursor = (foundNode || foundEdge) ? 'pointer' : 'default';
                 draw();
             }
         });
 
         canvas.addEventListener('mouseleave', function () {
-            if (hoveredNode) {
+            if (hoveredNode || hoveredEdge) {
                 hoveredNode = null;
+                hoveredEdge = null;
                 draw();
             }
         });

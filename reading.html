@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading List</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #04529D 0%, #3A6963 100%);
+            min-height: 100vh;
+            cursor: none;
+        }
+
+        a, button, [role="button"], .nav-button, .nav-links a {
+            cursor: none !important;
+        }
+
+        .cursor-custom {
+            position: fixed;
+            font-size: 24px;
+            pointer-events: none;
+            z-index: 99999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.15s ease-out;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+        }
+
+        .cursor-custom.cursor-hover {
+            transform: translate(-50%, -50%) scale(1.35);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 0;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .nav-links {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .books-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .book-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .book-title {
+            color: #EE2835;
+            margin-bottom: 6px;
+            font-size: 1.6rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .book-author {
+            color: #ED8171;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .book-comment {
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+
+        .no-books {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            opacity: 0.8;
+            padding: 60px 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: white;
+            opacity: 0.8;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            .book-card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .book-title {
+                font-size: 1.4rem;
+            }
+
+            .nav-links a {
+                display: block;
+                margin: 10px auto;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+            </div>
+            <h1>Reading List</h1>
+            <p class="subtitle">Books I'd recommend</p>
+        </header>
+
+        <div class="books-container" id="books-container">
+            <div class="no-books" id="no-books">Loading books...</div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 DexWebsite. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+    async function tryFetch(paths) {
+        const errors = [];
+        for (const path of paths) {
+            try {
+                const res = await fetch(path, { cache: 'no-store' });
+                if (res.ok) {
+                    return { json: await res.json(), path };
+                } else {
+                    errors.push(`${path} -> ${res.status}`);
+                }
+            } catch (e) {
+                errors.push(`${path} -> ${e.message}`);
+            }
+        }
+        throw new Error('Tried paths: ' + errors.join(' | '));
+    }
+
+    async function fetchAndRenderBooks() {
+        const container = document.getElementById('books-container');
+        const emptyState = document.getElementById('no-books');
+
+        const basePath = (location.pathname || '/').replace(/[^\/]*$/, '');
+        const candidates = [
+            'reading/books.json',
+            basePath + 'reading/books.json',
+            './reading/books.json',
+            '/reading/books.json'
+        ];
+
+        try {
+            const { json: manifest } = await tryFetch(candidates);
+
+            if (emptyState) emptyState.remove();
+
+            if (!Array.isArray(manifest.books) || manifest.books.length === 0) {
+                const msg = document.createElement('div');
+                msg.className = 'no-books';
+                msg.textContent = 'No books yet.';
+                container.appendChild(msg);
+                return;
+            }
+
+            for (const book of manifest.books) {
+                const card = document.createElement('div');
+                card.className = 'book-card';
+
+                const title = document.createElement('h2');
+                title.className = 'book-title';
+                title.textContent = book.title || 'Untitled';
+
+                const author = document.createElement('div');
+                author.className = 'book-author';
+                author.textContent = book.author ? `by ${book.author}` : '';
+
+                const comment = document.createElement('p');
+                comment.className = 'book-comment';
+                comment.textContent = book.comment || '';
+
+                card.appendChild(title);
+                if (book.author) card.appendChild(author);
+                card.appendChild(comment);
+                container.appendChild(card);
+            }
+        } catch (err) {
+            if (emptyState) emptyState.textContent = 'Error loading books.';
+            console.error('[Books fetch error]', err);
+        }
+    }
+
+    fetchAndRenderBooks();
+    </script>
+    <div class="cursor-custom" id="cursorCustom" aria-hidden="true">📖</div>
+    <script>
+        (function() {
+            var el = document.getElementById('cursorCustom');
+            var x = 0, y = 0, tx = 0, ty = 0;
+            document.addEventListener('mousemove', function(e) {
+                x = e.clientX;
+                y = e.clientY;
+                var clickable = e.target.closest('a, button, [role="button"], .nav-button, .nav-links a');
+                el.classList.toggle('cursor-hover', !!clickable);
+            });
+            function update() {
+                tx += (x - tx) * 0.2;
+                ty += (y - ty) * 0.2;
+                el.style.left = tx + 'px';
+                el.style.top = ty + 'px';
+                requestAnimationFrame(update);
+            }
+            update();
+        })();
+    </script>
+</body>
+</html>
